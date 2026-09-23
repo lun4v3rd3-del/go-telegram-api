@@ -19,5 +19,13 @@ func (e *EventProcessor) Fetch() []entitiy.Event {
 		panic(err)
 	}
 
+	var maxOffset int64 = -1
+	for _, event := range response.Events {
+		if maxOffset < event.ID {
+			maxOffset = event.ID
+		}
+	}
+	e.client.OffsetUpdate(maxOffset)
+
 	return response.Events
 }

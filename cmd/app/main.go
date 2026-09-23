@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"regexp"
+	"syscall"
 	"telegram-api-service/internal/infrastructure/telegram"
 	"telegram-api-service/internal/usecase"
 
@@ -24,18 +27,29 @@ func main() {
 	re, _ := regexp.Compile(".*")
 	router.RegisterHandler(re, telegram.NewGreetHandler(tgClient))
 
-	eventProcessor := usecase.NewEventProcessor(tgClient)
+	eventProcessor := usecase.NewEventProcessor(tgClient, router)
 
 	fetcher := usecase.Fetcher(eventProcessor)
 	processor := usecase.Processor(eventProcessor)
 
-	events := fetcher.Fetch()
-	fmt.Println(events)
-	for _, event := range events {
-		processor.Process(event, router.HandlerPool)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	// consumer.Start(fetcher, processor)
+	consumer := usecase.NewConsumer(processor, fetcher)
+
+	consumer.Start(ctx)
+	fmt.Println("Consumer успешно запущен...")
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	sig := <-sigChan
+	fmt.Printf("Получен сигнал %s, начинаем остановку...\n", sig)
+
+	cancel()
+
+	consumer.Stop()
+	fmt.Println("Приложение успешно остановлено.")
 }
 
 func loadEnv() {

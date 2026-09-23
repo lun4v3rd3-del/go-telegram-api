@@ -14,6 +14,30 @@ func NewGreetHandler(c *HttpClient) *GreetHandler {
 }
 
 func (g *GreetHandler) Handle(event *entitiy.Event) {
+	query := entitiy.SendMessageQuery{
+		Text:   event.Msg.Text,
+		ChatID: event.Msg.Chat.ID,
+		ReplyMarkup: entitiy.ReplyMarkup{
+			InlineKeyboards: [][]entitiy.InlineKeyboardButton{
+				{
+					{
+						Text:         "inline_keyboard_1",
+						CallbackData: "callback_data_1",
+					},
+					{
+						Text:         "inline_keyboard_1",
+						CallbackData: "callback_data_1",
+					},
+				},
+				{
+					{
+						Text:         "inline_keyboard_1",
+						CallbackData: "callback_data_1",
+					},
+				},
+			},
+		},
+	}
 	fmt.Print("GreetHandler handle")
-	g.c.SendMessage(event.Msg.Chat.ID, event.Msg.Text)
+	g.c.SendMessage(query)
 }
