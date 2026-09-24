@@ -22,18 +22,13 @@ func (h *HttpClient) saveOffset(offset int64) {
 
 	f, err := os.Open(tmpFile)
 	if err == nil {
-		err := f.Sync()
-		if err != nil {
-			return
-		}
-		err = f.Close()
-		if err != nil {
-			return
-		}
+		f.Sync()
+		f.Close()
 	}
 
 	if err = os.Rename(tmpFile, offsetFile); err != nil {
 		fmt.Printf("Ошибка применения атомарного сохранения: %v\n", err)
+		return
 	}
 }
 

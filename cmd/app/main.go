@@ -25,7 +25,8 @@ func main() {
 
 	router := telegram.NewRouter()
 	re, _ := regexp.Compile(".*")
-	router.RegisterHandler(re, telegram.NewGreetHandler(tgClient))
+	router.RegisterHandler(re, telegram.NewTestHandler(tgClient))
+	router.RegisterHandler(re, telegram.NewCallbackHandler(tgClient), "callback_data_1")
 
 	eventProcessor := usecase.NewEventProcessor(tgClient, router)
 

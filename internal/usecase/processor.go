@@ -2,8 +2,6 @@ package usecase
 
 import (
 	"log"
-	"maps"
-	"regexp"
 	"telegram-api-service/internal/entitiy"
 )
 
@@ -12,17 +10,19 @@ type Processor interface {
 }
 
 func (e *EventProcessor) Process(event entitiy.Event) {
-	re := event.Msg.Text
+	var re string
+	var qd string
+	if event.Message != nil {
+		re = event.Message.Text
+	} else {
+		re = event.CallbackQuery.Message.Text
+		qd = event.CallbackQuery.Data
+	}
 
-	for key := range maps.Keys(e.router.HandlerPool) {
-		ok, err := regexp.MatchString(key, re)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if ok {
-			e.router.HandlerPool[key].Handle(&event)
-		}
+	h := e.router.FindHandler(re, qd)
+	if h != nil {
+		(*h).Handle(&event, &e.handlerContext)
+	} else {
+		log.Println("No handler for event:", event.ID)
 	}
 }
