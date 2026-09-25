@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"regexp"
 	"syscall"
+	"telegram-api-service/internal/entitiy/arguments"
 	"telegram-api-service/internal/infrastructure/telegram"
 	"telegram-api-service/internal/usecase"
 
@@ -24,11 +25,32 @@ func main() {
 	tgClient := telegram.NewHttpClient(t)
 
 	router := telegram.NewRouter()
-	re, _ := regexp.Compile(".*")
-	router.RegisterHandler(re, telegram.NewTestHandler(tgClient))
-	router.RegisterHandler(re, telegram.NewCallbackHandler(tgClient), "callback_data_1")
+	re, _ := regexp.Compile("hello")
 
-	eventProcessor := usecase.NewEventProcessor(tgClient, router)
+	router.RegisterHandler(arguments.HandlerArgs{
+		Re: re,
+		H:  telegram.NewTestHandler(tgClient),
+	})
+	router.RegisterHandler(arguments.HandlerArgs{
+		H:  telegram.NewCallbackHandler(tgClient),
+		Cd: "callback_data_1",
+	})
+
+	statesGroup := telegram.TestGet()
+	re_1, _ := regexp.Compile("test")
+
+	router.RegisterHandler(arguments.HandlerArgs{
+		Re: re_1,
+		H:  telegram.NewStateFirstHandler(tgClient),
+	})
+	router.RegisterHandler(arguments.HandlerArgs{
+		H:     telegram.NewStateSecondHandler(tgClient),
+		State: statesGroup.State1,
+	})
+
+	fsmContext := telegram.NewFSMContext()
+
+	eventProcessor := usecase.NewEventProcessor(tgClient, router, fsmContext)
 
 	fetcher := usecase.Fetcher(eventProcessor)
 	processor := usecase.Processor(eventProcessor)

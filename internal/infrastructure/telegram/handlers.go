@@ -3,6 +3,7 @@ package telegram
 import (
 	"encoding/json"
 	"telegram-api-service/internal/entitiy"
+	"telegram-api-service/internal/infrastructure/interfaces"
 )
 
 type TestHandler struct {
@@ -13,7 +14,7 @@ func NewTestHandler(c *HttpClient) *TestHandler {
 	return &TestHandler{c: c}
 }
 
-func (g *TestHandler) Handle(event *entitiy.Event, ctx *entitiy.Context) {
+func (g *TestHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
 	var message entitiy.Message
 
 	if event.Message != nil {
@@ -59,7 +60,7 @@ func NewCallbackHandler(c *HttpClient) *CallbackHandler {
 	return &CallbackHandler{c: c}
 }
 
-func (g *CallbackHandler) Handle(event *entitiy.Event, ctx *entitiy.Context) {
+func (g *CallbackHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
 	defer g.c.AnswerCallback(entitiy.AnswerCallbackQuery{
 		CallbackQueryID: event.CallbackQuery.ID,
 	})
@@ -70,4 +71,42 @@ func (g *CallbackHandler) Handle(event *entitiy.Event, ctx *entitiy.Context) {
 	}
 
 	g.c.SendMessage(query)
+}
+
+type StateFirstHandler struct {
+	c *HttpClient
+}
+
+func NewStateFirstHandler(c *HttpClient) *StateFirstHandler {
+	return &StateFirstHandler{c: c}
+}
+
+func (h *StateFirstHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
+	query := entitiy.SendMessageQuery{
+		Text:   "state_1_handler_response",
+		ChatID: event.Message.Chat.ID,
+	}
+
+	h.c.SendMessage(query)
+
+	(*ctx).SetState(TestGet().State1)
+}
+
+type StateSecondHandler struct {
+	c *HttpClient
+}
+
+func NewStateSecondHandler(c *HttpClient) *StateSecondHandler {
+	return &StateSecondHandler{c: c}
+}
+
+func (h *StateSecondHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
+	query := entitiy.SendMessageQuery{
+		Text:   "state_2_handler_response",
+		ChatID: event.Message.Chat.ID,
+	}
+
+	h.c.SendMessage(query)
+
+	(*ctx).ClearState()
 }

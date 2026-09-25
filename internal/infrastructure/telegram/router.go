@@ -1,58 +1,85 @@
 package telegram
 
 import (
-	"maps"
+	"fmt"
 	"regexp"
+	"telegram-api-service/internal/entitiy"
+	"telegram-api-service/internal/entitiy/arguments"
 	"telegram-api-service/internal/infrastructure/interfaces"
 )
+
+type HandlerHolder struct {
+	State   *entitiy.State
+	Re      *regexp.Regexp
+	Cd      string
+	Handler *interfaces.Handler
+}
 
 type Registrator interface {
 	RegistrateHandler(re regexp.Regexp, h interfaces.Handler)
 }
 
 type Router struct {
-	HandlerPool map[string]map[string]interfaces.Handler
+	HandlerPool []HandlerHolder
 }
 
 func NewRouter() *Router {
 	return &Router{
-		HandlerPool: make(map[string]map[string]interfaces.Handler),
+		HandlerPool: make([]HandlerHolder, 1),
 	}
 }
 
-func (r *Router) RegisterHandler(re *regexp.Regexp, h interfaces.Handler, qd ...string) {
+func (r *Router) RegisterHandler(args arguments.HandlerArgs) {
 	callbackData := "none"
-	if len(qd) > 0 && qd[0] != "" {
-		callbackData = qd[0]
+	if args.Cd != "" {
+		callbackData = args.Cd
 	}
 
-	pattern := re.String()
-
-	if r.HandlerPool[pattern] == nil {
-		r.HandlerPool[pattern] = make(map[string]interfaces.Handler)
+	holder := HandlerHolder{
+		Cd:      callbackData,
+		Re:      args.Re,
+		State:   args.State,
+		Handler: &args.H,
 	}
-	r.HandlerPool[pattern][callbackData] = h
+
+	r.HandlerPool = append(r.HandlerPool, holder)
 }
 
-func (r *Router) FindHandler(re string, qd ...string) *interfaces.Handler {
-	var callbackData = "none"
-	if len(qd) > 0 && qd[0] != "" {
-		callbackData = qd[0]
+func (r *Router) FindHandler(args arguments.HandlerArgs) *interfaces.Handler {
+	callbackData := "none"
+	if args.Cd != "" {
+		callbackData = args.Cd
 	}
 
-	for key := range maps.Keys(r.HandlerPool) {
-		reg, err := regexp.Compile(key)
-		if err != nil {
-			continue
+	var hPattern *interfaces.Handler
+	var hCallback *interfaces.Handler
+
+	fmt.Println("args:", callbackData, args.Pattern)
+
+	for _, holder := range r.HandlerPool {
+		fmt.Println("holder:", holder.Cd, holder.Re)
+
+		if holder.State != nil && holder.State == args.State {
+			return holder.Handler
 		}
-		if reg.MatchString(re) {
-			handlerFamily := r.HandlerPool[key]
-			handler, ok := handlerFamily[callbackData]
-			if ok {
-				return &handler
+
+		if callbackData != "none" && holder.Cd == callbackData {
+			hCallback = holder.Handler
+		}
+
+		if holder.Re != nil && args.Pattern != "" {
+			if holder.Re.MatchString(args.Pattern) {
+				hPattern = holder.Handler
 			}
-			break
 		}
 	}
+
+	if hCallback != nil {
+		return hCallback
+	}
+	if hPattern != nil {
+		return hPattern
+	}
+
 	return nil
 }

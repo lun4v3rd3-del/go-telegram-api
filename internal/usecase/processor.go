@@ -3,6 +3,7 @@ package usecase
 import (
 	"log"
 	"telegram-api-service/internal/entitiy"
+	"telegram-api-service/internal/entitiy/arguments"
 )
 
 type Processor interface {
@@ -10,18 +11,20 @@ type Processor interface {
 }
 
 func (e *EventProcessor) Process(event entitiy.Event) {
-	var re string
-	var qd string
+	var qd, pattern string
 	if event.Message != nil {
-		re = event.Message.Text
+		pattern = event.Message.Text
 	} else {
-		re = event.CallbackQuery.Message.Text
 		qd = event.CallbackQuery.Data
 	}
 
-	h := e.router.FindHandler(re, qd)
+	h := e.router.FindHandler(arguments.HandlerArgs{
+		Pattern: pattern,
+		Cd:      qd,
+		State:   e.context.GetState(),
+	})
 	if h != nil {
-		(*h).Handle(&event, &e.handlerContext)
+		(*h).Handle(&event, &e.context)
 	} else {
 		log.Println("No handler for event:", event.ID)
 	}
