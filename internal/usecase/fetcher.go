@@ -7,16 +7,16 @@ import (
 )
 
 type Fetcher interface {
-	Fetch() []entitiy.Event
+	Fetch() ([]entitiy.Event, error)
 }
 
-func (e *EventProcessor) Fetch() []entitiy.Event {
+func (e *EventProcessor) Fetch() ([]entitiy.Event, error) {
 	raw_events := bytes.TrimRight(e.client.Updates(), "\x00")
 
 	var response entitiy.Response
 
 	if err := json.Unmarshal(raw_events, &response); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var maxOffset int64 = -1
@@ -27,5 +27,5 @@ func (e *EventProcessor) Fetch() []entitiy.Event {
 	}
 	e.client.OffsetUpdate(maxOffset)
 
-	return response.Events
+	return response.Events, nil
 }

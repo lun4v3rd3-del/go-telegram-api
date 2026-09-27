@@ -6,15 +6,13 @@ import (
 	"telegram-api-service/internal/infrastructure/interfaces"
 )
 
-type TestHandler struct {
-	c *HttpClient
+type TestHandler struct{}
+
+func NewTestHandler() *TestHandler {
+	return &TestHandler{}
 }
 
-func NewTestHandler(c *HttpClient) *TestHandler {
-	return &TestHandler{c: c}
-}
-
-func (g *TestHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
+func (g *TestHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
 	var message entitiy.Message
 
 	if event.Message != nil {
@@ -49,19 +47,17 @@ func (g *TestHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
 			},
 		},
 	}
-	g.c.SendMessage(query)
+	client.SendMessage(query)
 }
 
-type CallbackHandler struct {
-	c *HttpClient
+type CallbackHandler struct{}
+
+func NewCallbackHandler() *CallbackHandler {
+	return &CallbackHandler{}
 }
 
-func NewCallbackHandler(c *HttpClient) *CallbackHandler {
-	return &CallbackHandler{c: c}
-}
-
-func (g *CallbackHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
-	defer g.c.AnswerCallback(entitiy.AnswerCallbackQuery{
+func (g *CallbackHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
+	defer client.AnswerCallback(entitiy.AnswerCallbackQuery{
 		CallbackQueryID: event.CallbackQuery.ID,
 	})
 
@@ -70,43 +66,41 @@ func (g *CallbackHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) 
 		ChatID: event.CallbackQuery.Message.Chat.ID,
 	}
 
-	g.c.SendMessage(query)
+	client.SendMessage(query)
 }
 
 type StateFirstHandler struct {
 	c *HttpClient
 }
 
-func NewStateFirstHandler(c *HttpClient) *StateFirstHandler {
-	return &StateFirstHandler{c: c}
+func NewStateFirstHandler() *StateFirstHandler {
+	return &StateFirstHandler{}
 }
 
-func (h *StateFirstHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
+func (h *StateFirstHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
 	query := entitiy.SendMessageQuery{
 		Text:   "state_1_handler_response",
 		ChatID: event.Message.Chat.ID,
 	}
 
-	h.c.SendMessage(query)
+	client.SendMessage(query)
 
 	(*ctx).SetState(TestGet().State1)
 }
 
-type StateSecondHandler struct {
-	c *HttpClient
+type StateSecondHandler struct{}
+
+func NewStateSecondHandler() *StateSecondHandler {
+	return &StateSecondHandler{}
 }
 
-func NewStateSecondHandler(c *HttpClient) *StateSecondHandler {
-	return &StateSecondHandler{c: c}
-}
-
-func (h *StateSecondHandler) Handle(event *entitiy.Event, ctx *interfaces.Context) {
+func (h *StateSecondHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
 	query := entitiy.SendMessageQuery{
 		Text:   "state_2_handler_response",
 		ChatID: event.Message.Chat.ID,
 	}
 
-	h.c.SendMessage(query)
+	client.SendMessage(query)
 
 	(*ctx).ClearState()
 }

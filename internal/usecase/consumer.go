@@ -2,30 +2,46 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"sync"
 	"telegram-api-service/internal/entitiy"
+	"telegram-api-service/internal/infrastructure/telegram"
 	"time"
 )
 
-type Consumer struct {
+type Bot struct {
 	processor Processor
 	fetcher   Fetcher
 	producers *sync.WaitGroup
 	consumers *sync.WaitGroup
+	Router    telegram.Router
+	Client    telegram.HttpClient
 	channel   chan entitiy.Event
 }
 
-func NewConsumer(processor Processor, fetcher Fetcher) *Consumer {
-	return &Consumer{
+func NewBot(token string) *Bot {
+	client := telegram.NewHttpClient(token)
+	router := telegram.NewRouter()
+
+	fsmContext := telegram.NewFSMContext()
+
+	eventProcessor := NewEventProcessor(client, router, fsmContext)
+
+	fetcher := Fetcher(eventProcessor)
+	processor := Processor(eventProcessor)
+
+	return &Bot{
 		processor: processor,
 		fetcher:   fetcher,
+		Router:    *router,
+		Client:    *client,
 		producers: &sync.WaitGroup{},
 		consumers: &sync.WaitGroup{},
 		channel:   make(chan entitiy.Event, 100),
 	}
 }
 
-func (c *Consumer) Start(ctx context.Context) {
+func (c *Bot) Start(ctx context.Context) error {
 	c.producers.Add(1)
 
 	go func(id int64) {
@@ -36,7 +52,12 @@ func (c *Consumer) Start(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
-				events := c.fetcher.Fetch()
+				events, err := c.fetcher.Fetch()
+
+				if err != nil {
+					return err
+				}
+
 				if len(events) == 0 {
 					continue
 				}
@@ -57,13 +78,16 @@ func (c *Consumer) Start(ctx context.Context) {
 		go func(id int64) {
 			defer c.consumers.Done()
 			for event := range c.channel {
-				c.processor.Process(event)
+				err := c.processor.Process(event)
+				if err != nil {
+					return err
+				}
 			}
 		}(int64(i))
 	}
 }
 
-func (c *Consumer) Stop() {
+func (c *Bot) Stop() {
 	c.producers.Wait()
 	c.consumers.Wait()
 }

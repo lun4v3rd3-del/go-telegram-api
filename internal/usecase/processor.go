@@ -7,10 +7,10 @@ import (
 )
 
 type Processor interface {
-	Process(event entitiy.Event)
+	Process(event entitiy.Event) error
 }
 
-func (e *EventProcessor) Process(event entitiy.Event) {
+func (e *EventProcessor) Process(event entitiy.Event) error {
 	var qd, pattern string
 	if event.Message != nil {
 		pattern = event.Message.Text
@@ -24,8 +24,9 @@ func (e *EventProcessor) Process(event entitiy.Event) {
 		State:   e.context.GetState(),
 	})
 	if h != nil {
-		(*h).Handle(&event, &e.context)
+		(*h).Handle(&event, &e.context, e.client)
 	} else {
 		log.Println("No handler for event:", event.ID)
 	}
+	return nil
 }

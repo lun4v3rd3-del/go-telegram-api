@@ -22,56 +22,45 @@ func main() {
 
 	fmt.Printf("Loaded token %s\n", t)
 
-	tgClient := telegram.NewHttpClient(t)
+	bot := usecase.NewBot(t)
 
-	router := telegram.NewRouter()
 	re, _ := regexp.Compile("hello")
 
-	router.RegisterHandler(arguments.HandlerArgs{
+	bot.Router.RegisterHandler(arguments.HandlerArgs{
 		Re: re,
-		H:  telegram.NewTestHandler(tgClient),
+		H:  telegram.NewTestHandler(),
 	})
-	router.RegisterHandler(arguments.HandlerArgs{
-		H:  telegram.NewCallbackHandler(tgClient),
+	bot.Router.RegisterHandler(arguments.HandlerArgs{
+		H:  telegram.NewCallbackHandler(),
 		Cd: "callback_data_1",
 	})
 
 	statesGroup := telegram.TestGet()
 	re_1, _ := regexp.Compile("test")
 
-	router.RegisterHandler(arguments.HandlerArgs{
+	bot.Router.RegisterHandler(arguments.HandlerArgs{
 		Re: re_1,
-		H:  telegram.NewStateFirstHandler(tgClient),
+		H:  telegram.NewStateFirstHandler(),
 	})
-	router.RegisterHandler(arguments.HandlerArgs{
-		H:     telegram.NewStateSecondHandler(tgClient),
+	bot.Router.RegisterHandler(arguments.HandlerArgs{
+		H:     telegram.NewStateSecondHandler(),
 		State: statesGroup.State1,
 	})
 
-	fsmContext := telegram.NewFSMContext()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	eventProcessor := usecase.NewEventProcessor(tgClient, router, fsmContext)
+	go func() {
+		if err := bot.Start(ctx); err != nil {
+			fmt.Printf("Ошибка при работе бота: %v\n", err)
+		}
+	}()
+	fmt.Println("Bot успешно запущен...")
 
-	fetcher := usecase.Fetcher(eventProcessor)
-	processor := usecase.Processor(eventProcessor)
+	<-ctx.Done()
+	fmt.Println("Получен сигнал от системы, начинаем graceful shutdown...")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	consumer := usecase.NewConsumer(processor, fetcher)
-
-	consumer.Start(ctx)
-	fmt.Println("Consumer успешно запущен...")
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	sig := <-sigChan
-	fmt.Printf("Получен сигнал %s, начинаем остановку...\n", sig)
-
-	cancel()
-
-	consumer.Stop()
+	bot.Stop()
 	fmt.Println("Приложение успешно остановлено.")
 }
 

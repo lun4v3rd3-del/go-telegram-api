@@ -1,6 +1,6 @@
 package interfaces
 
-type Consumer interface {
-	Start()
+type Bot interface {
+	Start() err
 	Stop()
 }
