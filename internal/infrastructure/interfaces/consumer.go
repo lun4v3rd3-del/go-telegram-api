@@ -1,6 +1,8 @@
 package interfaces
 
+import "context"
+
 type Bot interface {
-	Start() err
+	Start(context.Context) error
 	Stop()
 }

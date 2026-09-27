@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"log"
+	_ "log"
 	"sync"
 	"telegram-api-service/internal/entitiy"
 	"telegram-api-service/internal/infrastructure/telegram"
@@ -17,6 +18,7 @@ type Bot struct {
 	Router    telegram.Router
 	Client    telegram.HttpClient
 	channel   chan entitiy.Event
+	errChan   chan error
 }
 
 func NewBot(token string) *Bot {
@@ -38,11 +40,21 @@ func NewBot(token string) *Bot {
 		producers: &sync.WaitGroup{},
 		consumers: &sync.WaitGroup{},
 		channel:   make(chan entitiy.Event, 100),
+		errChan:   make(chan error, 100),
 	}
 }
 
 func (c *Bot) Start(ctx context.Context) error {
 	c.producers.Add(1)
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		case err := <-c.errChan:
+			log.Println(err)
+		}
+	}()
 
 	go func(id int64) {
 		defer c.producers.Done()
@@ -55,7 +67,7 @@ func (c *Bot) Start(ctx context.Context) error {
 				events, err := c.fetcher.Fetch()
 
 				if err != nil {
-					return err
+					c.errChan <- err
 				}
 
 				if len(events) == 0 {
@@ -80,11 +92,13 @@ func (c *Bot) Start(ctx context.Context) error {
 			for event := range c.channel {
 				err := c.processor.Process(event)
 				if err != nil {
-					return err
+					c.errChan <- err
 				}
 			}
 		}(int64(i))
 	}
+
+	return nil
 }
 
 func (c *Bot) Stop() {
