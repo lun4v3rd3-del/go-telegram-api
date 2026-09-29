@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"regexp"
+	"syscall"
+	"telegram-api-service/internal/entitiy/arguments"
 	"telegram-api-service/internal/infrastructure/telegram"
 	"telegram-api-service/internal/usecase"
 
@@ -18,24 +22,46 @@ func main() {
 
 	fmt.Printf("Loaded token %s\n", t)
 
-	tgClient := telegram.NewHttpClient(t)
+	bot := usecase.NewBot(t)
 
-	router := telegram.NewRouter()
-	re, _ := regexp.Compile(".*")
-	router.RegisterHandler(re, telegram.NewGreetHandler(tgClient))
+	re, _ := regexp.Compile("hello")
 
-	eventProcessor := usecase.NewEventProcessor(tgClient)
+	bot.Router.RegisterHandler(arguments.HandlerArgs{
+		Re: re,
+		H:  telegram.NewTestHandler(),
+	})
+	bot.Router.RegisterHandler(arguments.HandlerArgs{
+		H:  telegram.NewCallbackHandler(),
+		Cd: "callback_data_1",
+	})
 
-	fetcher := usecase.Fetcher(eventProcessor)
-	processor := usecase.Processor(eventProcessor)
+	statesGroup := telegram.TestGet()
+	re_1, _ := regexp.Compile("test")
 
-	events := fetcher.Fetch()
-	fmt.Println(events)
-	for _, event := range events {
-		processor.Process(event, router.HandlerPool)
-	}
+	bot.Router.RegisterHandler(arguments.HandlerArgs{
+		Re: re_1,
+		H:  telegram.NewStateFirstHandler(),
+	})
+	bot.Router.RegisterHandler(arguments.HandlerArgs{
+		H:     telegram.NewStateSecondHandler(),
+		State: statesGroup.State1,
+	})
 
-	// consumer.Start(fetcher, processor)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		if err := bot.Start(ctx); err != nil {
+			fmt.Printf("Ошибка при работе бота: %v\n", err)
+		}
+	}()
+	fmt.Println("Bot успешно запущен...")
+
+	<-ctx.Done()
+	fmt.Println("Получен сигнал от системы, начинаем graceful shutdown...")
+
+	bot.Stop()
+	fmt.Println("Приложение успешно остановлено.")
 }
 
 func loadEnv() {

@@ -1,18 +1,29 @@
 package telegram
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
+	"telegram-api-service/internal/entitiy"
 )
 
 type HttpClient struct {
 	Host    string
 	SubPath string
 	client  *http.Client
+	offset  int64
+}
+
+func (h *HttpClient) OffsetUpdate(newOffset int64) {
+	if newOffset > h.offset {
+		h.offset = newOffset
+	}
+	h.saveOffset(h.offset)
 }
 
 func NewHttpClient(token string) *HttpClient {
@@ -26,11 +37,16 @@ func NewHttpClient(token string) *HttpClient {
 		},
 	}
 
-	return &HttpClient{
+	h := HttpClient{
 		Host:    "https://api.telegram.org",
 		SubPath: getSubpath(token),
 		client:  &client,
 	}
+
+	offset := h.loadOffset()
+	h.offset = offset
+
+	return &h
 }
 
 func getSubpath(token string) string {
@@ -40,11 +56,14 @@ func getSubpath(token string) string {
 func (c *HttpClient) path(method string) string {
 	path := c.Host + "/" + c.SubPath + "/" + method
 
+	fmt.Println(path)
+
 	return path
 }
 
 func (c *HttpClient) Updates() []byte {
-	r, err := c.client.Get(c.path("getUpdates"))
+	fullPath := fmt.Sprintf("%s?offset=%d", c.path("getUpdates"), c.offset+1)
+	r, err := c.client.Get(fullPath)
 
 	if err != nil {
 		log.Fatal(err)
@@ -57,23 +76,63 @@ func (c *HttpClient) Updates() []byte {
 		}
 	}(r.Body)
 
-	resp := make([]byte, 12800)
-
-	_, err = r.Body.Read(resp)
+	resp, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil
 	}
 
+	fmt.Println(string(resp))
+
 	return resp
 }
 
-func (c *HttpClient) SendMessage(chat_id int64, text string) {
-	_, err := c.client.PostForm(c.path("sendMessage"), url.Values{
-		"chat_id": []string{strconv.FormatInt(chat_id, 10)},
-		"text":    []string{text},
-	})
-
+func (c *HttpClient) SendMessage(query entitiy.SendMessageQuery) {
+	jsonData, err := json.Marshal(query)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Ошибка маршалинга JSON: %v", err)
+		return
+	}
+
+	fmt.Println(string(jsonData))
+
+	resp, err := c.client.Post(c.path("sendMessage"), "application/json", bytes.NewReader(jsonData))
+	if err != nil {
+		log.Printf("Ошибка отправки запроса: %v", err)
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Telegram API вернул статус: %d", resp.StatusCode)
+	}
+}
+
+func (c *HttpClient) AnswerCallback(query entitiy.AnswerCallbackQuery) {
+	jsonData, err := json.Marshal(query)
+	if err != nil {
+		log.Printf("Ошибка маршалинга JSON для answerCallbackQuery: %v", err)
+		return
+	}
+
+	resp, err := c.client.Post(c.path("answerCallbackQuery"), "application/json", bytes.NewReader(jsonData))
+	if err != nil {
+		log.Printf("Ошибка отправки запроса answerCallbackQuery: %v", err)
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Ошибка закрытия body: %v", err)
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("Telegram API (answerCallbackQuery) вернул статус: %d, ответ: %s", resp.StatusCode, string(bodyBytes))
 	}
 }

@@ -1,6 +1,10 @@
 package interfaces
 
+import "telegram-api-service/internal/entitiy"
+
 type Client interface {
 	Updates() []byte
-	SendMessage(int64, string)
+	SendMessage(query entitiy.SendMessageQuery)
+	OffsetUpdate(int64)
+	AnswerCallback(entitiy.AnswerCallbackQuery)
 }

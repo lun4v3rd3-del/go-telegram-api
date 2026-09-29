@@ -1,31 +1,32 @@
 package usecase
 
 import (
-	"fmt"
 	"log"
-	"maps"
-	"regexp"
 	"telegram-api-service/internal/entitiy"
-	"telegram-api-service/internal/infrastructure/interfaces"
+	"telegram-api-service/internal/entitiy/arguments"
 )
 
 type Processor interface {
-	Process(event entitiy.Event, handlerPool map[string]interfaces.Handler)
+	Process(event entitiy.Event) error
 }
 
-func (e *EventProcessor) Process(event entitiy.Event, handlerPool map[string]interfaces.Handler) {
-	re := event.Msg.Text
-
-	for key := range maps.Keys(handlerPool) {
-		ok, err := regexp.MatchString(key, re)
-		fmt.Printf("matching: %s %s %f\n", re, key, ok)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if ok {
-			handlerPool[key].Handle(&event)
-		}
+func (e *EventProcessor) Process(event entitiy.Event) error {
+	var qd, pattern string
+	if event.Message != nil {
+		pattern = event.Message.Text
+	} else {
+		qd = event.CallbackQuery.Data
 	}
+
+	h := e.router.FindHandler(arguments.HandlerArgs{
+		Pattern: pattern,
+		Cd:      qd,
+		State:   e.context.GetState(),
+	})
+	if h != nil {
+		(*h).Handle(&event, &e.context, e.client)
+	} else {
+		log.Println("No handler for event:", event.ID)
+	}
+	return nil
 }

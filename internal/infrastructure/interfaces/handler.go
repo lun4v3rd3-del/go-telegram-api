@@ -1,7 +1,9 @@
 package interfaces
 
-import "telegram-api-service/internal/entitiy"
+import (
+	"telegram-api-service/internal/entitiy"
+)
 
 type Handler interface {
-	Handle(event *entitiy.Event)
+	Handle(event *entitiy.Event, ctx *Context, client Client)
 }
