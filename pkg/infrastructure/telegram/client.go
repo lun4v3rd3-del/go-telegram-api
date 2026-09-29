@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
 )
 
 type HttpClient struct {
@@ -31,6 +32,10 @@ func NewHttpClient(token string) *HttpClient {
 		Transport: &http.Transport{
 			Proxy: func(r *http.Request) (*url.URL, error) {
 				proxy := os.Getenv("PROXY")
+
+				if proxy == "" {
+					return nil, nil
+				}
 
 				return url.Parse(proxy)
 			},
