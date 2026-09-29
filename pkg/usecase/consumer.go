@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/interfaces"
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/telegram"
 )
 
@@ -17,17 +18,16 @@ type Bot struct {
 	producers *sync.WaitGroup
 	consumers *sync.WaitGroup
 	Router    *telegram.Router
-	Client    *telegram.HttpClient
+	Client    interfaces.Client
 	channel   chan entitiy.Event
 	errChan   chan error
 }
 
 func NewBot(token string) *Bot {
-	client := telegram.NewHttpClient(token)
+	client := interfaces.Client(telegram.NewHttpClient(token))
 	router := telegram.NewRouter()
 
 	fsmContext := telegram.NewFSMContext()
-
 	eventProcessor := NewEventProcessor(client, router, fsmContext)
 
 	fetcher := Fetcher(eventProcessor)
