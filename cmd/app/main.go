@@ -9,9 +9,9 @@ import (
 	"regexp"
 	"syscall"
 
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy/arguments"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/infrastructure/telegram"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/usecase"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy/arguments"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/telegram"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/usecase"
 
 	"github.com/joho/godotenv"
 )

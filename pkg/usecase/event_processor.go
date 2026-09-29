@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/infrastructure/interfaces"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/infrastructure/telegram"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/interfaces"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/telegram"
 )
 
 type EventProcessor struct {

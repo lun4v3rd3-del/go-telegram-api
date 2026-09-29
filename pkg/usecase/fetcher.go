@@ -3,7 +3,7 @@ package usecase
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
 )
 
 type Fetcher interface {

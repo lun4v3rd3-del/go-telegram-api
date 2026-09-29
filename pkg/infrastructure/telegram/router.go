@@ -2,9 +2,9 @@ package telegram
 
 import (
 	"fmt"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy/arguments"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/infrastructure/interfaces"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy/arguments"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/interfaces"
 	"regexp"
 )
 

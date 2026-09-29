@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
 	"sync"
 )
 

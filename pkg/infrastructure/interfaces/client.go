@@ -1,6 +1,6 @@
 package interfaces
 
-import "github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
+import "github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
 
 type Client interface {
 	Updates() []byte

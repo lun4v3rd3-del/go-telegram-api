@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
-	"github.com/lun4v3rd3-del/go-telegram-api/internal/infrastructure/telegram"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/telegram"
 	"log"
 	_ "log"
 	"sync"
