@@ -2,12 +2,13 @@ package usecase
 
 import (
 	"context"
-	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
-	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/telegram"
 	"log"
 	_ "log"
 	"sync"
 	"time"
+
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/telegram"
 )
 
 type Bot struct {
@@ -15,8 +16,8 @@ type Bot struct {
 	fetcher   Fetcher
 	producers *sync.WaitGroup
 	consumers *sync.WaitGroup
-	Router    telegram.Router
-	Client    telegram.HttpClient
+	Router    *telegram.Router
+	Client    *telegram.HttpClient
 	channel   chan entitiy.Event
 	errChan   chan error
 }
@@ -35,8 +36,8 @@ func NewBot(token string) *Bot {
 	return &Bot{
 		processor: processor,
 		fetcher:   fetcher,
-		Router:    *router,
-		Client:    *client,
+		Router:    router,
+		Client:    client,
 		producers: &sync.WaitGroup{},
 		consumers: &sync.WaitGroup{},
 		channel:   make(chan entitiy.Event, 100),
