@@ -1,4 +1,4 @@
-module telegram-api-service
+module github.com/lun4v3rd3-del/go-telegram-api
 
 go 1.27.0
 
