@@ -2,21 +2,18 @@ package telegram
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy/arguments"
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/interfaces"
-	"regexp"
 )
 
 type HandlerHolder struct {
-	State   *entitiy.State
-	Re      *regexp.Regexp
-	Cd      string
-	Handler *interfaces.Handler
-}
-
-type Registrator interface {
-	RegistrateHandler(re regexp.Regexp, h interfaces.Handler)
+	State       *entitiy.State
+	Re          *regexp.Regexp
+	Cd          string
+	HandlerFunc *interfaces.HandlerFunc
 }
 
 type Router struct {
@@ -36,23 +33,23 @@ func (r *Router) RegisterHandler(args arguments.HandlerArgs) {
 	}
 
 	holder := HandlerHolder{
-		Cd:      callbackData,
-		Re:      args.Re,
-		State:   args.State,
-		Handler: &args.H,
+		Cd:          callbackData,
+		Re:          args.Re,
+		State:       args.State,
+		HandlerFunc: &args.H,
 	}
 
 	r.HandlerPool = append(r.HandlerPool, holder)
 }
 
-func (r *Router) FindHandler(args arguments.HandlerArgs) *interfaces.Handler {
+func (r *Router) FindHandler(args arguments.HandlerArgs) *interfaces.HandlerFunc {
 	callbackData := "none"
 	if args.Cd != "" {
 		callbackData = args.Cd
 	}
 
-	var hPattern *interfaces.Handler
-	var hCallback *interfaces.Handler
+	var hPattern *interfaces.HandlerFunc
+	var hCallback *interfaces.HandlerFunc
 
 	fmt.Println("args:", callbackData, args.Pattern)
 
@@ -60,16 +57,16 @@ func (r *Router) FindHandler(args arguments.HandlerArgs) *interfaces.Handler {
 		fmt.Println("holder:", holder.Cd, holder.Re)
 
 		if holder.State != nil && holder.State == args.State {
-			return holder.Handler
+			return holder.HandlerFunc
 		}
 
 		if callbackData != "none" && holder.Cd == callbackData {
-			hCallback = holder.Handler
+			hCallback = holder.HandlerFunc
 		}
 
 		if holder.Re != nil && args.Pattern != "" {
 			if holder.Re.MatchString(args.Pattern) {
-				hPattern = holder.Handler
+				hPattern = holder.HandlerFunc
 			}
 		}
 	}

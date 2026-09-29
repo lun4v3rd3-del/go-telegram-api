@@ -7,13 +7,7 @@ import (
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/interfaces"
 )
 
-type TestHandler struct{}
-
-func NewTestHandler() *TestHandler {
-	return &TestHandler{}
-}
-
-func (g *TestHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
+func TestHandler(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
 	var message entitiy.Message
 
 	if event.Message != nil {
@@ -51,13 +45,7 @@ func (g *TestHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, clie
 	client.SendMessage(query)
 }
 
-type CallbackHandler struct{}
-
-func NewCallbackHandler() *CallbackHandler {
-	return &CallbackHandler{}
-}
-
-func (g *CallbackHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
+func CallbackHandler(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
 	defer client.AnswerCallback(entitiy.AnswerCallbackQuery{
 		CallbackQueryID: event.CallbackQuery.ID,
 	})
@@ -70,15 +58,7 @@ func (g *CallbackHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, 
 	client.SendMessage(query)
 }
 
-type StateFirstHandler struct {
-	c *HttpClient
-}
-
-func NewStateFirstHandler() *StateFirstHandler {
-	return &StateFirstHandler{}
-}
-
-func (h *StateFirstHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
+func StateFirstHandler(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
 	query := entitiy.SendMessageQuery{
 		Text:   "state_1_handler_response",
 		ChatID: event.Message.Chat.ID,
@@ -89,13 +69,7 @@ func (h *StateFirstHandler) Handle(event *entitiy.Event, ctx *interfaces.Context
 	(*ctx).SetState(TestGet().State1)
 }
 
-type StateSecondHandler struct{}
-
-func NewStateSecondHandler() *StateSecondHandler {
-	return &StateSecondHandler{}
-}
-
-func (h *StateSecondHandler) Handle(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
+func StateSecondHandler(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
 	query := entitiy.SendMessageQuery{
 		Text:   "state_2_handler_response",
 		ChatID: event.Message.Chat.ID,

@@ -1,9 +1,10 @@
 package usecase
 
 import (
+	"log"
+
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy/arguments"
-	"log"
 )
 
 type Processor interface {
@@ -24,7 +25,7 @@ func (e *EventProcessor) Process(event entitiy.Event) error {
 		State:   e.context.GetState(),
 	})
 	if h != nil {
-		(*h).Handle(&event, &e.context, e.client)
+		(*h)(&event, &e.context, &e.client)
 	} else {
 		log.Println("No handler for event:", event.ID)
 	}

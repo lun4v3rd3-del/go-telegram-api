@@ -29,10 +29,10 @@ func main() {
 
 	bot.Router.RegisterHandler(arguments.HandlerArgs{
 		Re: re,
-		H:  telegram.NewTestHandler(),
+		H:  telegram.TestHandler,
 	})
 	bot.Router.RegisterHandler(arguments.HandlerArgs{
-		H:  telegram.NewCallbackHandler(),
+		H:  telegram.CallbackHandler,
 		Cd: "callback_data_1",
 	})
 
@@ -41,10 +41,10 @@ func main() {
 
 	bot.Router.RegisterHandler(arguments.HandlerArgs{
 		Re: re_1,
-		H:  telegram.NewStateFirstHandler(),
+		H:  telegram.StateFirstHandler,
 	})
 	bot.Router.RegisterHandler(arguments.HandlerArgs{
-		H:     telegram.NewStateSecondHandler(),
+		H:     telegram.StateSecondHandler,
 		State: statesGroup.State1,
 	})
 

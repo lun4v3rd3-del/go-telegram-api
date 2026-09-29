@@ -1,9 +1,5 @@
 package interfaces
 
-import (
-	"github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
-)
+import "github.com/lun4v3rd3-del/go-telegram-api/pkg/entitiy"
 
-type Handler interface {
-	Handle(event *entitiy.Event, ctx *Context, client Client)
-}
+type HandlerFunc func(event *entitiy.Event, ctx *Context, client *Client)
