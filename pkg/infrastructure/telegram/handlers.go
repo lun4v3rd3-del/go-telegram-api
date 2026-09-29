@@ -7,7 +7,7 @@ import (
 	"github.com/lun4v3rd3-del/go-telegram-api/pkg/infrastructure/interfaces"
 )
 
-func TestHandler(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
+func TestHandler(event *entitiy.Event, ctx *interfaces.Context, client *interfaces.Client) {
 	var message entitiy.Message
 
 	if event.Message != nil {
@@ -42,11 +42,11 @@ func TestHandler(event *entitiy.Event, ctx *interfaces.Context, client interface
 			},
 		},
 	}
-	client.SendMessage(query)
+	(*client).SendMessage(query)
 }
 
-func CallbackHandler(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
-	defer client.AnswerCallback(entitiy.AnswerCallbackQuery{
+func CallbackHandler(event *entitiy.Event, ctx *interfaces.Context, client *interfaces.Client) {
+	defer (*client).AnswerCallback(entitiy.AnswerCallbackQuery{
 		CallbackQueryID: event.CallbackQuery.ID,
 	})
 
@@ -55,27 +55,27 @@ func CallbackHandler(event *entitiy.Event, ctx *interfaces.Context, client inter
 		ChatID: event.CallbackQuery.Message.Chat.ID,
 	}
 
-	client.SendMessage(query)
+	(*client).SendMessage(query)
 }
 
-func StateFirstHandler(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
+func StateFirstHandler(event *entitiy.Event, ctx *interfaces.Context, client *interfaces.Client) {
 	query := entitiy.SendMessageQuery{
 		Text:   "state_1_handler_response",
 		ChatID: event.Message.Chat.ID,
 	}
 
-	client.SendMessage(query)
+	(*client).SendMessage(query)
 
 	(*ctx).SetState(TestGet().State1)
 }
 
-func StateSecondHandler(event *entitiy.Event, ctx *interfaces.Context, client interfaces.Client) {
+func StateSecondHandler(event *entitiy.Event, ctx *interfaces.Context, client *interfaces.Client) {
 	query := entitiy.SendMessageQuery{
 		Text:   "state_2_handler_response",
 		ChatID: event.Message.Chat.ID,
 	}
 
-	client.SendMessage(query)
+	(*client).SendMessage(query)
 
 	(*ctx).ClearState()
 }
