@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"telegram-api-service/internal/entitiy"
 )
 
 type HttpClient struct {

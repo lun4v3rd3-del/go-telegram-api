@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"telegram-api-service/internal/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
 )
 
 type Handler interface {

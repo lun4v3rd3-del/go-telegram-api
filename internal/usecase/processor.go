@@ -1,9 +1,9 @@
 package usecase
 
 import (
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy/arguments"
 	"log"
-	"telegram-api-service/internal/entitiy"
-	"telegram-api-service/internal/entitiy/arguments"
 )
 
 type Processor interface {

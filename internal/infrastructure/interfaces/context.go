@@ -1,6 +1,6 @@
 package interfaces
 
-import "telegram-api-service/internal/entitiy"
+import "github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
 
 type Context interface {
 	GetState() *entitiy.State

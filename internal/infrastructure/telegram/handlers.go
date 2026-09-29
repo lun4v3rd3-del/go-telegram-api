@@ -2,8 +2,9 @@ package telegram
 
 import (
 	"encoding/json"
-	"telegram-api-service/internal/entitiy"
-	"telegram-api-service/internal/infrastructure/interfaces"
+
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/infrastructure/interfaces"
 )
 
 type TestHandler struct{}

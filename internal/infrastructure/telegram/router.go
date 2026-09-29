@@ -2,10 +2,10 @@ package telegram
 
 import (
 	"fmt"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy/arguments"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/infrastructure/interfaces"
 	"regexp"
-	"telegram-api-service/internal/entitiy"
-	"telegram-api-service/internal/entitiy/arguments"
-	"telegram-api-service/internal/infrastructure/interfaces"
 )
 
 type HandlerHolder struct {

@@ -8,9 +8,10 @@ import (
 	"os/signal"
 	"regexp"
 	"syscall"
-	"telegram-api-service/internal/entitiy/arguments"
-	"telegram-api-service/internal/infrastructure/telegram"
-	"telegram-api-service/internal/usecase"
+
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy/arguments"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/infrastructure/telegram"
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/usecase"
 
 	"github.com/joho/godotenv"
 )

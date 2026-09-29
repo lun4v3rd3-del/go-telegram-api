@@ -1,8 +1,8 @@
 package telegram
 
 import (
+	"github.com/lun4v3rd3-del/go-telegram-api/internal/entitiy"
 	"sync"
-	"telegram-api-service/internal/entitiy"
 )
 
 var TestInstance *Test
